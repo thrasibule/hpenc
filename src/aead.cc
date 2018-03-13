@@ -67,18 +67,16 @@ public:
 
 class OpenSSLAeadCipher: public AeadCipher
 {
+    using evp_cipher_ctx_ptr = std::unique_ptr<EVP_CIPHER_CTX, decltype(&EVP_CIPHER_CTX_free)>;
 private:
-	std::unique_ptr<EVP_CIPHER_CTX> ctx_enc;
-	std::unique_ptr<EVP_CIPHER_CTX> ctx_dec;
+	evp_cipher_ctx_ptr ctx_enc=evp_cipher_ctx_ptr(EVP_CIPHER_CTX_new(), EVP_CIPHER_CTX_free);
+	evp_cipher_ctx_ptr ctx_dec=evp_cipher_ctx_ptr(EVP_CIPHER_CTX_new(), EVP_CIPHER_CTX_free);
 	const EVP_CIPHER *alg;
 	AeadAlgorithm alg_num;
 public:
 	OpenSSLAeadCipher(AeadAlgorithm _alg, bool _rm)
 		: AeadCipher(_rm)
 	{
-		ctx_enc.reset(EVP_CIPHER_CTX_new());
-		ctx_dec.reset(EVP_CIPHER_CTX_new());
-
 		switch(_alg) {
 		case AeadAlgorithm::AES_GCM_128:
 			alg = _rm ? EVP_aes_128_ctr() : EVP_aes_128_gcm();
